@@ -21,7 +21,7 @@ class App extends React.Component {
         data.forEach((v: any) => {
           var name = v.elements[0].elements[0]['text']
           let option = document.createElement('option');
-          option.innerHTML =   name;
+          option.innerHTML = name;
           list?.appendChild(option);
         })
 
@@ -32,7 +32,20 @@ class App extends React.Component {
   }
 
   handleClick() {
-    console.log('The link was clicked.');
+    const ele : HTMLInputElement =document.getElementById('channel') as HTMLInputElement;
+    var chan = ele?.value
+    console.log(chan)
+
+    fetch('/rec', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        channel: chan,
+      })
+    })
+
   }
   render() {
     return (
@@ -40,8 +53,6 @@ class App extends React.Component {
         <header className="App-header">
           <p>
             <select id="channel"></select>
-            <datalist>
-            </datalist>
             <button onClick={this.handleClick}>rec</button>
           </p>
         </header>
