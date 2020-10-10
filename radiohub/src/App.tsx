@@ -1,27 +1,21 @@
-import React, { useState } from 'react';
+import React from 'react';
 import './App.css';
 import DatePicker from "react-datepicker"
 import "react-datepicker/dist/react-datepicker.css"
 
 var parser = require('xml-js');
 
-function DatePickerObj() {
-  const [day, setDay] = useState<any>(Date.now());
-  const handleChange = (d: any) => {
-    console.log("change")
-    setDay(d)
-  }
-
-  return (
-    <div>
-      <DatePicker
-        onChange={handleChange}
-        selected={day} />
-    </div>
-  );
+interface Props {
+  day: Date
 }
 
-class App extends React.Component {
+class App extends React.Component<{}, Props> {
+  constructor(prop: any) {
+    super(prop)
+    this.state = {
+      day: new Date()
+    }
+  }
 
   componentDidMount() {
     fetch("/area")
@@ -50,30 +44,39 @@ class App extends React.Component {
       })
   }
 
-  handleClick() {
+  private handleClick = () => {
     const ele: HTMLInputElement = document.getElementById('channel') as HTMLInputElement;
     var chan = ele?.value
     console.log(chan)
+    console.log(this.state.day)
 
-    fetch('/rec', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        channel: chan,
-      })
-    })
+    //    fetch('/rec', {
+    //      method: 'POST',
+    //      headers: {
+    //        'Content-Type': 'application/json'
+    //      },
+    //      body: JSON.stringify({
+    //        channel: chan,
+    //      })
+    //    })
+  }
+  private handleChange = (d: any) => {
+    console.log("change")
+    this.setState({ day: d })
+
   }
   render() {
     return (
       <div className="App">
         <header className="App-header">
-            <DatePickerObj />
-            <input type="checkbox"></input>
-            <input type="number" value="90" ></input>
-            <select id="channel"></select>
-            <button onClick={this.handleClick}>rec</button>
+
+          <DatePicker className="datepicker"
+            onChange={this.handleChange}
+            selected={this.state.day} />
+          <input type="checkbox"></input>
+          <input type="number" defaultValue="90"></input>
+          <select id="channel"></select>
+          <button onClick={this.handleClick}>rec</button>
         </header>
       </div>
     );
