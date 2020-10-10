@@ -1,9 +1,28 @@
-import React from 'react';
+import React, { useState } from 'react';
 import './App.css';
+import DatePicker from "react-datepicker"
+import "react-datepicker/dist/react-datepicker.css"
 
 var parser = require('xml-js');
 
+function DatePickerObj() {
+  const [day, setDay] = useState<any>(Date.now());
+  const handleChange = (d: any) => {
+    console.log("change")
+    setDay(d)
+  }
+
+  return (
+    <div>
+      <DatePicker
+        onChange={handleChange}
+        selected={day} />
+    </div>
+  );
+}
+
 class App extends React.Component {
+
   componentDidMount() {
     fetch("/area")
       .then(function(response) {
@@ -32,7 +51,7 @@ class App extends React.Component {
   }
 
   handleClick() {
-    const ele : HTMLInputElement =document.getElementById('channel') as HTMLInputElement;
+    const ele: HTMLInputElement = document.getElementById('channel') as HTMLInputElement;
     var chan = ele?.value
     console.log(chan)
 
@@ -45,16 +64,16 @@ class App extends React.Component {
         channel: chan,
       })
     })
-
   }
   render() {
     return (
       <div className="App">
         <header className="App-header">
-          <p>
+            <DatePickerObj />
+            <input type="checkbox"></input>
+            <input type="number" value="90" ></input>
             <select id="channel"></select>
             <button onClick={this.handleClick}>rec</button>
-          </p>
         </header>
       </div>
     );
