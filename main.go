@@ -16,6 +16,8 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
+var collection *mongo.Collection
+
 func main() {
 
 	client, err := mongo.NewClient(options.Client().ApplyURI("mongodb://localhost:27017"))
@@ -29,20 +31,34 @@ func main() {
 		return
 	}
 	defer client.Disconnect(context.Background())
-	colection := client.Database("radiohub").Collection("schedules")
-	cur, err := colection.Find(context.Background(), bson.D{})
-	for cur.Next(context.Background()) {
-		// To decode into a struct, use cursor.Decode()
-		log.Println(cur)
-	}
+	collection = client.Database("radiohub").Collection("schedule")
 
 	r := gin.Default()
 	r.Use(static.Serve("/", static.LocalFile("radiohub/build", false)))
 	r.NoRoute(func(c *gin.Context) { c.File("radiohub/build/index.html") })
 	r.GET("/area", getArea)
+	r.GET("/schedule", getSchedule)
 	r.POST("/rec", recStart)
 	r.Run()
 
+}
+
+func getSchedule(c *gin.Context) {
+
+	if cur, err := collection.Find(context.Background(), bson.D{}); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	} else {
+		docs := make([]JsonRequest, 0, 20)
+		for cur.Next(context.Background()) {
+			var doc JsonRequest
+			if err = cur.Decode(&doc); err != nil {
+				log.Println(err)
+			} else {
+				docs = append(docs, doc)
+			}
+		}
+		c.JSON(http.StatusOK, docs)
+	}
 }
 
 func getArea(c *gin.Context) {
@@ -57,7 +73,11 @@ func getArea(c *gin.Context) {
 }
 
 type JsonRequest struct {
-	Channel string `json:"channel"`
+	Channel   string `json:"channel"`
+	Date      string `json:"date"`
+	StartTime string `json:"start"`
+	IsNow     string `json:"is_now"`
+	RecMinute string `json:"rec_minute"`
 }
 
 func recStart(c *gin.Context) {
@@ -66,9 +86,13 @@ func recStart(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
+
+	if _, err := collection.InsertOne(context.Background(), json); err != nil {
+		log.Println(err)
+	}
+
 	if cmd, err := radigo.RecLiveCommandFactory(); err == nil {
 		cmd.Run([]string{"-id=LFR", "-t=1"})
-
 	}
 
 	fmt.Println(json)
