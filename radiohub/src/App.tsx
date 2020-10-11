@@ -45,20 +45,26 @@ class App extends React.Component<{}, Props> {
   }
 
   private handleClick = () => {
-    const ele: HTMLInputElement = document.getElementById('channel') as HTMLInputElement;
-    var chan = ele?.value
-    console.log(chan)
-    console.log(this.state.day)
+    const chan: HTMLInputElement = document.getElementById('channel') as HTMLInputElement;
+    const start_time: HTMLInputElement = document.getElementById('start_time') as HTMLInputElement;
+    const is_now: HTMLInputElement = document.getElementById('is_now') as HTMLInputElement;
+    const rec_minute: HTMLInputElement = document.getElementById('rec_minute') as HTMLInputElement;
+    var text = JSON.stringify({
+      channel: chan?.value,
+      start: start_time?.value,
+      is_now: is_now?.value,
+      rec_minute: rec_minute?.value,
 
-    //    fetch('/rec', {
-    //      method: 'POST',
-    //      headers: {
-    //        'Content-Type': 'application/json'
-    //      },
-    //      body: JSON.stringify({
-    //        channel: chan,
-    //      })
-    //    })
+    })
+    console.log(text)
+
+    fetch('/rec', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: text
+    })
   }
   private handleChange = (d: any) => {
     console.log("change")
@@ -73,8 +79,9 @@ class App extends React.Component<{}, Props> {
           <DatePicker className="datepicker"
             onChange={this.handleChange}
             selected={this.state.day} />
-          <input type="checkbox"></input>
-          <input type="number" defaultValue="90"></input>
+          <input type="time" id="start_time"></input>
+          <input type="checkbox" id="is_now" ></input>
+          <input type="number" id="rec_minute" defaultValue="90"></input>
           <select id="channel"></select>
           <button onClick={this.handleClick}>rec</button>
         </header>

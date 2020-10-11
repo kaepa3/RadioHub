@@ -1,16 +1,40 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
 
 	"github.com/gin-contrib/static"
 	"github.com/gin-gonic/gin"
 	"github.com/yyoshiki41/radigo"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo"
+
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 func main() {
+
+	client, err := mongo.NewClient(options.Client().ApplyURI("mongodb://localhost:27017"))
+	if err != nil {
+		log.Fatal(err)
+		return
+	}
+
+	if err = client.Connect(context.Background()); err != nil {
+		log.Fatal(err)
+		return
+	}
+	defer client.Disconnect(context.Background())
+	colection := client.Database("radiohub").Collection("schedules")
+	cur, err := colection.Find(context.Background(), bson.D{})
+	for cur.Next(context.Background()) {
+		// To decode into a struct, use cursor.Decode()
+		log.Println(cur)
+	}
 
 	r := gin.Default()
 	r.Use(static.Serve("/", static.LocalFile("radiohub/build", false)))
