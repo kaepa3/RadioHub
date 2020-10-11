@@ -7,14 +7,17 @@ var parser = require('xml-js');
 
 interface Props {
   day: Date
+  is_now: boolean
 }
 
 class App extends React.Component<{}, Props> {
   constructor(prop: any) {
     super(prop)
     this.state = {
-      day: new Date()
+      day: new Date(),
+      is_now: false,
     }
+    this.handleIsNow = this.handleIsNow.bind(this)
   }
 
   componentDidMount() {
@@ -87,20 +90,40 @@ class App extends React.Component<{}, Props> {
     console.log("change")
     this.setState({ day: d })
   }
+  handleIsNow() {
+    this.setState({ is_now: !this.state.is_now })
+    console.log(this.state.is_now)
+  }
   render() {
     return (
       <div className="App">
-        <header className="App-header">
-          <DatePicker className="datepicker" id="datepicker"
-            onChange={this.handleChange}
-            selected={this.state.day} />
-          <input type="time" id="start_time"></input>
-          <input type="checkbox" id="is_now" ></input>
-          <input type="number" id="rec_minute" defaultValue="90"></input>
-          <select id="channel"></select>
-          <button onClick={this.handleClick}>rec</button>
+        <div className='header'>RadioHub</div>
+        <div className='content'>
+          <div className='operation'>
+            <p>Start Now</p>
+            <input type="checkbox" id="is_now" checked={this.state.is_now} onChange={this.handleIsNow} />
+            <div className='datetime' style={{ display: this.state.is_now ? 'none' : '' }}>
+              <p>Date</p>
+              <DatePicker className="datepicker" id="datepicker"
+                onChange={this.handleChange}
+                selected={this.state.day} />
+              <p>Time</p>
+              <input type="time" id="start_time" className="tbox-style" />
+            </div>
+            <div>
+              <p> Recording Length</p>
+              <input type="number" id="rec_minute" className="tbox-style" defaultValue="90"></input>sec
+            </div>
+            <div>
+              <p> Channel </p>
+              <select id="channel"></select>
+            </div>
+            <div className='register'>
+              <button onClick={this.handleClick}>recording start</button>
+            </div>
+          </div>
           <div id="schedule"> </div>
-        </header>
+        </div>
       </div>
     );
   }

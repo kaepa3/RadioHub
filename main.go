@@ -86,14 +86,16 @@ func recStart(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-
-	if _, err := collection.InsertOne(context.Background(), json); err != nil {
-		log.Println(err)
-	}
-
-	if cmd, err := radigo.RecLiveCommandFactory(); err == nil {
-		cmd.Run([]string{"-id=LFR", "-t=1"})
-	}
-
 	fmt.Println(json)
+	if json.IsNow == "on" {
+		if cmd, err := radigo.RecLiveCommandFactory(); err == nil {
+			id := fmt.Sprintf("-id=%s", json.Channel)
+			time := fmt.Sprintf("-t=%s", json.RecMinute)
+			cmd.Run([]string{id, time})
+		}
+	} else {
+		if _, err := collection.InsertOne(context.Background(), json); err != nil {
+			log.Println(err)
+		}
+	}
 }
