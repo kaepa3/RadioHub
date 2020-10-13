@@ -1,70 +1,70 @@
 .App {
-  height:100%;
-  text-align: center;
+    height:100%;
+    text-align: center;
 }
 
 .App-logo {
-  height: 40vmin;
-  pointer-events: none;
+    height: 40vmin;
+    pointer-events: none;
 }
 
 @media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
+    .App-logo {
+        animation: App-logo-spin infinite 20s linear;
+    }
 }
 
 .App-header {
-  background-color: #282c34;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
+    background-color: #282c34;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-size: calc(10px + 2vmin);
+    color: white;
 }
 
 .App-link {
-  color: #61dafb;
+    color: #61dafb;
 }
 
 @keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
 }
 
 :root{
---header-size: 44px;
---header-color: #40c0d0;
+    --header-size: 44px;
+    --header-color: #40c0d0;
 }
 
 .header{
-  height: var(--header-size);
-  background: var(--header-color);
-  display: flex;
-  justify-content: center;
-  align-items: center;
+    height: var(--header-size);
+    background: var(--header-color);
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 .content{
-  background-color: #282c34;
-  min-height: 100vh;
+    background-color: #282c34;
+    min-height: 100vh;
 }
 .operation{
-  padding: 5vh;
-  color: white;
+    padding: 5vh;
+    color: white;
 }
 .register{
-  padding: 5vh;
+    padding: 5vh;
 
 }
 .datepicker{
     padding-top   : 4px;
-  padding-right : 4px;
-  padding-bottom: 2px;
-  text-align    : center;
-  font-weight   : bold;
+    padding-right : 4px;
+    padding-bottom: 2px;
+    text-align    : center;
+    font-weight   : bold;
 }

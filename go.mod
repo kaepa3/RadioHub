@@ -9,6 +9,7 @@ require (
 	github.com/grafov/m3u8 v0.11.1 // indirect
 	github.com/mitchellh/cli v1.1.2 // indirect
 	github.com/olekukonko/tablewriter v0.0.4 // indirect
+	github.com/stretchr/testify v1.6.1
 	github.com/yyoshiki41/go-radiko v0.6.0 // indirect
 	github.com/yyoshiki41/radigo v0.9.0
 	go.mongodb.org/mongo-driver v1.4.2

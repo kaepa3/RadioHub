@@ -122,6 +122,7 @@ class App extends React.Component<{}, Props> {
               <button onClick={this.handleClick}>recording start</button>
             </div>
           </div>
+          <p>Schedule</p>
           <div id="schedule"> </div>
         </div>
       </div>
