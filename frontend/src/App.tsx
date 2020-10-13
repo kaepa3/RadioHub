@@ -2,12 +2,19 @@ import React from 'react';
 import './App.css';
 import DatePicker from "react-datepicker"
 import "react-datepicker/dist/react-datepicker.css"
+import Select, { ValueType } from 'react-select'
 
 var parser = require('xml-js');
 
+
+const rec_types = [
+  { value: 'one_time', label: 'one time' },
+  { value: 'now', label: 'now' },
+  { value: 'schedule', label: 'schedule' },
+]
 interface Props {
   day: Date
-  is_now: boolean
+  rec_type: typeof rec_types[0]
 }
 
 class App extends React.Component<{}, Props> {
@@ -15,9 +22,8 @@ class App extends React.Component<{}, Props> {
     super(prop)
     this.state = {
       day: new Date(),
-      is_now: false,
+      rec_type: rec_types[0]
     }
-    this.handleIsNow = this.handleIsNow.bind(this)
   }
 
   componentDidMount() {
@@ -43,14 +49,14 @@ class App extends React.Component<{}, Props> {
         return response.body?.getReader().read()
       })
       .then(function(response) {
-        var xml = (new TextDecoder()).decode(response?.value)
-        var options = { ignoreComment: true, alwaysChildren: true };
-        var data = parser.xml2js(xml, options)['elements'][0]['elements']
+        const xml = (new TextDecoder()).decode(response?.value)
+        const options = { ignoreComment: true, alwaysChildren: true };
+        const data = parser.xml2js(xml, options)['elements'][0]['elements']
 
         console.log(data[0])
-        var list = document.getElementById('channel');
+        const list = document.getElementById('channel');
         data.forEach((v: any) => {
-          var name = v.elements[0].elements[0]['text']
+          const name = v.elements[0].elements[0]['text']
           let option = document.createElement('option');
           option.innerHTML = name;
           list?.appendChild(option);
@@ -63,21 +69,8 @@ class App extends React.Component<{}, Props> {
   }
 
   private handleClick = () => {
-    const chan: HTMLInputElement = document.getElementById('channel') as HTMLInputElement;
-    const start_time: HTMLInputElement = document.getElementById('start_time') as HTMLInputElement;
-    const is_now: HTMLInputElement = document.getElementById('is_now') as HTMLInputElement;
-    const rec_minute: HTMLInputElement = document.getElementById('rec_minute') as HTMLInputElement;
-    const datepicker: HTMLInputElement = document.getElementById('datepicker') as HTMLInputElement;
-    var text = JSON.stringify({
-      date: datepicker?.value,
-      channel: chan?.value,
-      start: start_time?.value,
-      is_now: is_now?.value,
-      rec_minute: rec_minute?.value,
-
-    })
+    const text = this.createRequestInfo()
     console.log(text)
-
     fetch('/rec', {
       method: 'POST',
       headers: {
@@ -86,13 +79,25 @@ class App extends React.Component<{}, Props> {
       body: text
     })
   }
+  createRequestInfo() {
+    const chan: HTMLInputElement = document.getElementById('channel') as HTMLInputElement;
+    const start_time: HTMLInputElement = document.getElementById('start_time') as HTMLInputElement;
+    const rec_minute: HTMLInputElement = document.getElementById('rec_minute') as HTMLInputElement;
+    const datepicker: HTMLInputElement = document.getElementById('datepicker') as HTMLInputElement;
+    return JSON.stringify({
+      date: datepicker?.value,
+      channel: chan?.value,
+      start: start_time?.value,
+      rec_type: this.state.rec_type,
+      rec_minute: rec_minute?.value,
+    })
+  }
   private handleChange = (d: any) => {
-    console.log("change")
     this.setState({ day: d })
   }
-  handleIsNow() {
-    this.setState({ is_now: !this.state.is_now })
-    console.log(this.state.is_now)
+  handleTypeChange = (tp: ValueType<{ value: string, label: string }>) => {
+    const v = tp as { value: string, label: string }
+    this.setState({ rec_type: v })
   }
   render() {
     return (
@@ -101,8 +106,8 @@ class App extends React.Component<{}, Props> {
         <div className='content'>
           <div className='operation'>
             <p>Start Now</p>
-            <input type="checkbox" id="is_now" checked={this.state.is_now} onChange={this.handleIsNow} />
-            <div className='datetime' style={{ display: this.state.is_now ? 'none' : '' }}>
+            <Select id="rec_type" onChange={this.handleTypeChange} options={rec_types} value={this.state.rec_type} defaultValue={rec_types[0]} />
+            <div className='datetime' style={{ display: this.state.rec_type.value !== 'now' ? '' :'none' }}>
               <p>Date</p>
               <DatePicker className="datepicker" id="datepicker"
                 onChange={this.handleChange}
@@ -116,7 +121,7 @@ class App extends React.Component<{}, Props> {
             </div>
             <div>
               <p> Channel </p>
-              <select id="channel"></select>
+              <Select id="channel" />
             </div>
             <div className='register'>
               <button onClick={this.handleClick}>recording start</button>
