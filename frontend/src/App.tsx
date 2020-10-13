@@ -14,7 +14,13 @@ const rec_types = [
 ]
 interface Props {
   day: Date
-  rec_type: typeof rec_types[0]
+  rec_type: ListRecord
+  channels: ListRecord[]
+}
+
+interface ListRecord {
+  value: string
+  label: string
 }
 
 class App extends React.Component<{}, Props> {
@@ -22,7 +28,8 @@ class App extends React.Component<{}, Props> {
     super(prop)
     this.state = {
       day: new Date(),
-      rec_type: rec_types[0]
+      rec_type: rec_types[0],
+      channels: new Array(0)
     }
   }
 
@@ -44,24 +51,26 @@ class App extends React.Component<{}, Props> {
           })
         }
       })
+
+    const main = this
     fetch("/area")
-      .then(function(response) {
-        return response.body?.getReader().read()
-      })
+      .then((res => res.body?.getReader().read()))
       .then(function(response) {
         const xml = (new TextDecoder()).decode(response?.value)
         const options = { ignoreComment: true, alwaysChildren: true };
-        const data = parser.xml2js(xml, options)['elements'][0]['elements']
-
-        console.log(data[0])
-        const list = document.getElementById('channel');
-        data.forEach((v: any) => {
+        return parser.xml2js(xml, options)['elements'][0]['elements']
+      })
+      .then(function(res) {
+        const list: ListRecord[] = new Array(0)
+        res.forEach((v: any) => {
           const name = v.elements[0].elements[0]['text']
-          let option = document.createElement('option');
-          option.innerHTML = name;
-          list?.appendChild(option);
+          list.push({label: name, value:name})
         })
-
+        return list
+      })
+      .then(function(res) {
+        console.log(res)
+        main.setState({ channels: res })
       })
       .catch((err) => {
         console.log('err' + err)
@@ -95,8 +104,8 @@ class App extends React.Component<{}, Props> {
   private handleChange = (d: any) => {
     this.setState({ day: d })
   }
-  handleTypeChange = (tp: ValueType<{ value: string, label: string }>) => {
-    const v = tp as { value: string, label: string }
+  handleTypeChange = (tp: ValueType<ListRecord>) => {
+    const v = tp as ListRecord
     this.setState({ rec_type: v })
   }
   render() {
@@ -107,7 +116,7 @@ class App extends React.Component<{}, Props> {
           <div className='operation'>
             <p>Start Now</p>
             <Select id="rec_type" onChange={this.handleTypeChange} options={rec_types} value={this.state.rec_type} defaultValue={rec_types[0]} />
-            <div className='datetime' style={{ display: this.state.rec_type.value !== 'now' ? '' :'none' }}>
+            <div className='datetime' style={{ display: this.state.rec_type.value !== 'now' ? '' : 'none' }}>
               <p>Date</p>
               <DatePicker className="datepicker" id="datepicker"
                 onChange={this.handleChange}
@@ -121,7 +130,7 @@ class App extends React.Component<{}, Props> {
             </div>
             <div>
               <p> Channel </p>
-              <Select id="channel" />
+              <Select id="channel" options={this.state.channels} />
             </div>
             <div className='register'>
               <button onClick={this.handleClick}>recording start</button>

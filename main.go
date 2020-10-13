@@ -34,8 +34,8 @@ func main() {
 	collection = client.Database("radiohub").Collection("schedule")
 
 	r := gin.Default()
-	r.Use(static.Serve("/", static.LocalFile("radiohub/build", false)))
-	r.NoRoute(func(c *gin.Context) { c.File("radiohub/build/index.html") })
+	r.Use(static.Serve("/", static.LocalFile("frontend/build", false)))
+	r.NoRoute(func(c *gin.Context) { c.File("frontend/build/index.html") })
 	r.GET("/area", getArea)
 	r.GET("/schedule", getSchedule)
 	r.POST("/rec", recStart)
