@@ -9,10 +9,10 @@ import (
 
 	"github.com/gin-contrib/static"
 	"github.com/gin-gonic/gin"
+	"github.com/kaepa3/RadioHub/lib/recpacket"
 	"github.com/yyoshiki41/radigo"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
-
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
@@ -48,9 +48,9 @@ func getSchedule(c *gin.Context) {
 	if cur, err := collection.Find(context.Background(), bson.D{}); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 	} else {
-		docs := make([]JsonRequest, 0, 20)
+		docs := make([]recpacket.RecordingRequest, 0, 20)
 		for cur.Next(context.Background()) {
-			var doc JsonRequest
+			var doc recpacket.RecordingRequest
 			if err = cur.Decode(&doc); err != nil {
 				log.Println(err)
 			} else {
@@ -72,16 +72,8 @@ func getArea(c *gin.Context) {
 	c.String(200, string(data))
 }
 
-type JsonRequest struct {
-	Channel   string `json:"channel"`
-	Date      string `json:"date"`
-	StartTime string `json:"start"`
-	IsNow     string `json:"is_now"`
-	RecMinute string `json:"rec_minute"`
-}
-
 func recStart(c *gin.Context) {
-	var json JsonRequest
+	var json recpacket.RecordingRequest
 	if err := c.ShouldBindJSON(&json); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -94,8 +86,10 @@ func recStart(c *gin.Context) {
 			cmd.Run([]string{id, time})
 		}
 	} else {
-		if _, err := collection.InsertOne(context.Background(), json); err != nil {
-			log.Println(err)
+		if recpacket.CheckTimeBefore(json) {
+			if _, err := collection.InsertOne(context.Background(), json); err != nil {
+				log.Println(err)
+			}
 		}
 	}
 }

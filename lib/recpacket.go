@@ -1,6 +1,7 @@
-package RecordingRequest
+package recpacket
 
 import (
+	"fmt"
 	"strconv"
 	"strings"
 	"time"
@@ -14,12 +15,22 @@ type RecordingRequest struct {
 	RecMinute string `json:"rec_minute"`
 }
 
+const layout = "01/02/2006"
+
 func (req RecordingRequest) GetRecordingTime() time.Time {
-	recTime, _ := time.Parse("01/20/2020", req.Date)
+	recTime, err := time.Parse(layout, req.Date)
+	if err != nil {
+		fmt.Println(err)
+	}
 	slice := strings.Split(req.StartTime, ":")
 	hour, _ := strconv.Atoi(slice[0])
-	minute, _ := strconv.Atoi(slice[0])
+	minute, _ := strconv.Atoi(slice[1])
 
 	return time.Date(recTime.Year(), recTime.Month(), recTime.Day(), hour, minute, 0, 0, time.Local)
 
+}
+func CheckTimeBefore(req RecordingRequest) bool {
+	date := req.GetRecordingTime()
+	now := time.Now()
+	return !date.After(now)
 }
