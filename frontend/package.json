@@ -13,6 +13,8 @@
     "@types/react-dom": "^16.9.0",
     "@types/react-select": "^3.0.22",
     "axios": "^0.20.0",
+    "grommet-icons": "^4.5.0",
+    "grommet-styles": "^0.2.0",
     "react": "^16.13.1",
     "react-datepicker": "^3.2.2",
     "react-dom": "^16.13.1",
@@ -20,6 +22,7 @@
     "react-scripts": "3.4.3",
     "react-select": "^3.1.0",
     "redux": "^4.0.5",
+    "styled-components": "^5.2.0",
     "typescript": "~3.7.2",
     "xml-js": "^1.6.11"
   },

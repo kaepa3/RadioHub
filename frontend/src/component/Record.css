@@ -1,0 +1,32 @@
+.record{
+  width:80%;
+  padding: 0.5em;
+  margin-left: auto;
+  margin-right: auto;
+  margin-bottom: 5px;
+  margin-top: 5px;
+  line-height: 50px;
+  height: 50px;
+  border: medium solid white;
+  border-left: 6px solid #FFA000;
+  border-bottom: 2px solid #E0E0E0;
+  color:#FFA000;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+
+}
+.record_operation{
+  grid-column: 3 ;
+}
+.record_channel{
+  display:inline;
+  grid-column: 1 ;
+}
+.record_icon{
+  display:inline;
+  padding:0;
+  text-align: left;
+}
+.record_text{
+  display:inline;
+}

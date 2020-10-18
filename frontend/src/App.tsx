@@ -3,6 +3,7 @@ import './App.css';
 import DatePicker from "react-datepicker"
 import "react-datepicker/dist/react-datepicker.css"
 import Select, { ValueType } from 'react-select'
+import Record from './component/Record'
 
 var parser = require('xml-js');
 
@@ -126,7 +127,7 @@ class App extends React.Component<{}, Props> {
         <div className='content'>
           <div className='operation'>
             <p>Start Now</p>
-            <Select id="rec_type" onChange={this.handleTypeChange} options={rec_types} value={this.state.rec_type} defaultValue={rec_types[0]} />
+            <Select id="rec_type" className="selectbox" onChange={this.handleTypeChange} options={rec_types} value={this.state.rec_type} defaultValue={rec_types[0]} />
             <div className='datetime' style={{ display: this.state.rec_type.value !== 'now' ? '' : 'none' }}>
               <p>Date</p>
               <DatePicker className="datepicker" id="datepicker"
@@ -141,14 +142,17 @@ class App extends React.Component<{}, Props> {
             </div>
             <div>
               <p> Channel </p>
-              <Select id="channel" options={this.state.channels} value={this.state.select_channel} onChange={this.handleChangeChannel} />
+              <Select className="selectbox" id="channel" options={this.state.channels} value={this.state.select_channel} onChange={this.handleChangeChannel} />
             </div>
             <div className='register'>
               <button onClick={this.handleClick}>recording start</button>
             </div>
           </div>
-          <p>Schedule</p>
-          <div id="schedule"> </div>
+          <div className="schedule_area">
+            <p>Schedule</p>
+            <div id="schedule"> </div>
+            <Record channel= "hote" ></Record>
+          </div>
         </div>
       </div>
     );
