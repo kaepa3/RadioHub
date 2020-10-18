@@ -29,8 +29,24 @@ func (req RecordingRequest) GetRecordingTime() time.Time {
 	return time.Date(recTime.Year(), recTime.Month(), recTime.Day(), hour, minute, 0, 0, time.Local)
 
 }
-func CheckTimeBefore(req RecordingRequest) bool {
+func (req RecordingRequest) GetNextRecordingTime() time.Time {
+	recTime := req.GetRecordingTime()
+
+	bufferTime := recTime
+	for {
+		if CheckTimeBefore(bufferTime) {
+			bufferTime = bufferTime.AddDate(0, 0, 7)
+		} else {
+			break
+		}
+	}
+	return bufferTime
+}
+func (req RecordingRequest) CheckTimeBefore() bool {
 	date := req.GetRecordingTime()
+	return CheckTimeBefore(date)
+}
+func CheckTimeBefore(t time.Time) bool {
 	now := time.Now()
-	return !date.After(now)
+	return !t.After(now)
 }
