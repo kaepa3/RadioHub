@@ -40,7 +40,6 @@ func getScheduler() *gocron.Scheduler {
 	}
 	s1 := gocron.NewScheduler(time.Local)
 	return s1
-
 }
 func createSchedule() {
 
@@ -52,23 +51,22 @@ func createSchedule() {
 	}
 	sche := getScheduler()
 	for _, v := range schedule {
-		t := v.GetNextRecordingTime()
-		log.Println(t)
-		j, err := sche.Every(1).Week().StartAt(t).Do(func() { recordingTask(v.Channel, v.RecMinute) })
-		if err == nil {
-			log.Println(j)
-		} else {
-			log.Println(err)
-		}
+		RegistrationRecording(sche, v)
 	}
 
-	log.Println("hoge")
-	for _, v := range sche.Jobs() {
-		log.Println(v.ScheduledAtTime())
-		log.Println(v.ScheduledTime())
-	}
 	sche.StartAsync()
 }
+func RegistrationRecording(sche *gocron.Scheduler, v recpacket.RecordingRequest) {
+	t := v.GetNextRecordingTime()
+	log.Println(t)
+	j, err := sche.Every(1).Week().StartAt(t).Do(func() { recordingTask(v.Channel, v.RecMinute) })
+	if err == nil {
+		log.Println(j)
+	} else {
+		log.Println(err)
+	}
+}
+
 func recordingTask(ch string, minute string) {
 	log.Println("start recording:" + ch + " sec:" + minute)
 	if cmd, err := radigo.RecLiveCommandFactory(); err == nil {
@@ -111,6 +109,8 @@ func recStart(c *gin.Context) {
 		recordingTask(json.Channel, json.RecMinute)
 	} else {
 		if !json.CheckTimeBefore() {
+			sche := getScheduler()
+			RegistrationRecording(sche, json)
 			col := scheduledb.Schedules{}
 			if _, err := col.InsertOne(context.Background(), json); err != nil {
 				log.Println(err)

@@ -16,25 +16,6 @@ type Schedules struct {
 	collection *mongo.Collection
 }
 
-func (sch *Schedules) open() error {
-	cl, err := mongo.NewClient(options.Client().ApplyURI("mongodb://localhost:27017"))
-	if err != nil {
-		return err
-	}
-
-	if err = cl.Connect(context.Background()); err != nil {
-		return err
-	}
-	sch.client = cl
-	sch.collection = sch.client.Database("radiohub").Collection("schedule")
-
-	return nil
-}
-
-func (sch *Schedules) close() error {
-	return sch.client.Disconnect(context.Background())
-}
-
 func (sch *Schedules) GetAll() ([]recpacket.RecordingRequest, error) {
 	if err := sch.open(); err != nil {
 		return nil, err
@@ -57,11 +38,28 @@ func (sch *Schedules) GetAll() ([]recpacket.RecordingRequest, error) {
 	}
 	return docs, nil
 }
-
 func (sch *Schedules) InsertOne(ctx context.Context, document interface{}, opts ...*options.InsertOneOptions) (*mongo.InsertOneResult, error) {
 	if err := sch.open(); err != nil {
 		return nil, err
 	}
 	defer sch.close()
 	return sch.collection.InsertOne(ctx, document)
+}
+func (sch *Schedules) open() error {
+	cl, err := mongo.NewClient(options.Client().ApplyURI("mongodb://localhost:27017"))
+	if err != nil {
+		return err
+	}
+
+	if err = cl.Connect(context.Background()); err != nil {
+		return err
+	}
+	sch.client = cl
+	sch.collection = sch.client.Database("radiohub").Collection("schedule")
+
+	return nil
+}
+
+func (sch *Schedules) close() error {
+	return sch.client.Disconnect(context.Background())
 }
