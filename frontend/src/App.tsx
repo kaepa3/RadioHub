@@ -16,6 +16,7 @@ interface Props {
   day: Date
   rec_type: ListRecord
   channels: ListRecord[]
+  select_channel: ListRecord
 }
 
 interface ListRecord {
@@ -29,28 +30,32 @@ class App extends React.Component<{}, Props> {
     this.state = {
       day: new Date(),
       rec_type: rec_types[0],
-      channels: new Array(0)
+      channels: new Array(0),
+      select_channel: { value: "", label: "" }
+    }
+  }
+
+  updateSchedule(response: Response) {
+    if (response.ok) {
+      response.json().then(json => {
+        const div = document.getElementById('schedule')
+        div?.querySelectorAll('*').forEach(n => n.remove());
+        json.forEach((v: any) => {
+          const text = v.channel + v.date + v.start
+          const obj = document.createElement("div")
+          obj.innerHTML = text
+          div?.appendChild(obj)
+          console.log(v)
+          console.log(obj)
+        })
+        console.log(json)
+      })
     }
   }
 
   componentDidMount() {
     fetch("/schedule")
-      .then(function(response) {
-        if (response.ok) {
-          response.json().then(json => {
-            json.forEach((v: any) => {
-              const div = document.getElementById('schedule')
-              const text = v.channel + v.date + v.start
-              const obj = document.createElement("div")
-              obj.innerHTML = text
-              div?.appendChild(obj)
-              console.log(v)
-              console.log(obj)
-            })
-            console.log(json)
-          })
-        }
-      })
+      .then((res) => this.updateSchedule(res))
 
     const main = this
     fetch("/area")
@@ -64,7 +69,7 @@ class App extends React.Component<{}, Props> {
         const list: ListRecord[] = new Array(0)
         res.forEach((v: any) => {
           const name = v.elements[0].elements[0]['text']
-          list.push({label: name, value:name})
+          list.push({ label: name, value: name })
         })
         return list
       })
@@ -78,6 +83,7 @@ class App extends React.Component<{}, Props> {
   }
 
   private handleClick = () => {
+    const main = this
     const text = this.createRequestInfo()
     console.log(text)
     fetch('/rec', {
@@ -86,16 +92,18 @@ class App extends React.Component<{}, Props> {
         'Content-Type': 'application/json'
       },
       body: text
+    }).then(function(res) {
+      main.updateSchedule(res)
     })
+
   }
   createRequestInfo() {
-    const chan: HTMLInputElement = document.getElementById('channel') as HTMLInputElement;
     const start_time: HTMLInputElement = document.getElementById('start_time') as HTMLInputElement;
     const rec_minute: HTMLInputElement = document.getElementById('rec_minute') as HTMLInputElement;
     const datepicker: HTMLInputElement = document.getElementById('datepicker') as HTMLInputElement;
     return JSON.stringify({
       date: datepicker?.value,
-      channel: chan?.value,
+      channel: this.state.select_channel.value,
       start: start_time?.value,
       rec_type: this.state.rec_type,
       rec_minute: rec_minute?.value,
@@ -107,6 +115,9 @@ class App extends React.Component<{}, Props> {
   handleTypeChange = (tp: ValueType<ListRecord>) => {
     const v = tp as ListRecord
     this.setState({ rec_type: v })
+  }
+  private handleChangeChannel = (d: any) => {
+    this.setState({ select_channel: d })
   }
   render() {
     return (
@@ -130,7 +141,7 @@ class App extends React.Component<{}, Props> {
             </div>
             <div>
               <p> Channel </p>
-              <Select id="channel" options={this.state.channels} />
+              <Select id="channel" options={this.state.channels} value={this.state.select_channel} onChange={this.handleChangeChannel} />
             </div>
             <div className='register'>
               <button onClick={this.handleClick}>recording start</button>
