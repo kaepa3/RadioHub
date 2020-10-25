@@ -60,6 +60,13 @@ func (sch *Schedules) open() error {
 	return nil
 }
 
+func (sch *Schedules) DeleteOne(ctx context.Context, channel string, date string, time string) (*mongo.DeleteResult, error) {
+	if err := sch.open(); err != nil {
+		return nil, err
+	}
+	defer sch.close()
+	return sch.collection.DeleteOne(ctx, bson.M{"channel": channel, "date": date, "time": time})
+}
 func (sch *Schedules) close() error {
 	return sch.client.Disconnect(context.Background())
 }

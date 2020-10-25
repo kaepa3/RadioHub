@@ -134,11 +134,16 @@ func recStart(c *gin.Context) {
 	getSchedule(c)
 }
 func deleteRecord(c *gin.Context) {
+
 	var json recpacket.RecordingRequest
 	if err := c.ShouldBindJSON(&json); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	log.Println(json)
+	col := scheduledb.Schedules{}
+	if _, err := col.DeleteOne(context.Background(), json.Channel, json.Date, json.Time); err != nil {
+		log.Println(err)
+		return
+	}
 	getSchedule(c)
 }

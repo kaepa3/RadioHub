@@ -27,7 +27,7 @@ interface ValueLabel {
 }
 
 class App extends React.Component<{}, Props> {
-   constructor(prop: any) {
+  constructor(prop: any) {
     super(prop)
     this.state = {
       day: new Date(),
@@ -54,7 +54,7 @@ class App extends React.Component<{}, Props> {
   listItems = (state: any[]) => {
     return state.map((rec: any) => {
       if (rec != "") {
-        return <Record channel={rec.channel} description="" date={rec.date}  time={rec.time} onClickDelete={this.handleDeleteRecord} />
+        return <Record channel={rec.channel} description={rec.description} date={rec.date} time={rec.time} onClickDelete={this.handleDeleteRecord} />
       }
       return null;
     });
@@ -101,13 +101,15 @@ class App extends React.Component<{}, Props> {
 
   }
   createRequestInfo() {
-    const start_time: HTMLInputElement = document.getElementById('start_time') as HTMLInputElement;
+    const description: HTMLInputElement = document.getElementById('description') as HTMLInputElement;
+    const time: HTMLInputElement = document.getElementById('time') as HTMLInputElement;
     const rec_minute: HTMLInputElement = document.getElementById('rec_minute') as HTMLInputElement;
     const datepicker: HTMLInputElement = document.getElementById('datepicker') as HTMLInputElement;
     return JSON.stringify({
+      description: description.value,
       channel: this.state.select_channel.value,
       date: datepicker?.value,
-      time: start_time?.value,
+      time: time?.value,
       rec_type: this.state.rec_type.value,
       rec_minute: rec_minute?.value,
     })
@@ -124,6 +126,10 @@ class App extends React.Component<{}, Props> {
   }
   handleDeleteRecord = (e: ClickRecord) => {
     console.log('delete record')
+    if(!window.confirm("対象のスケジュールを削除してよろしいですか？")){
+      return 
+    }
+
     const main = this
     const text = JSON.stringify({
       channel: e.channel,
@@ -151,7 +157,7 @@ class App extends React.Component<{}, Props> {
               <p>Description</p>
               <input type="text" className="tbox-style" id="description" ></input>
             </div>
-            <p>Start Now</p>
+            <p>Rec Type</p>
             <Select id="rec_type" className="selectbox" onChange={this.handleTypeChange} options={rec_types} value={this.state.rec_type} defaultValue={rec_types[0]} />
             <div className='datetime' style={{ display: this.state.rec_type.value !== 'now' ? '' : 'none' }}>
               <p>Date</p>
@@ -159,7 +165,7 @@ class App extends React.Component<{}, Props> {
                 onChange={this.handleChange}
                 selected={this.state.day} />
               <p>Time</p>
-              <input type="time" id="start_time" className="tbox-style" />
+              <input type="time" id="time" className="tbox-style" />
             </div>
             <div>
               <p> Recording Length</p>

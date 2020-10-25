@@ -9,11 +9,12 @@ import (
 )
 
 type RecordingRequest struct {
-	Channel   string `json:"channel"`
-	Date      string `json:"date"`
-	Time      string `json:"start"`
-	RecType   string `json:"rec_type"`
-	RecMinute string `json:"rec_minute"`
+	Description string `json:"description"`
+	Channel     string `json:"channel"`
+	Date        string `json:"date"`
+	Time        string `json:"time"`
+	RecType     string `json:"rec_type"`
+	RecMinute   string `json:"rec_minute"`
 }
 
 const layout = "01/02/2006"
