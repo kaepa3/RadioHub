@@ -12,11 +12,11 @@
   border-bottom: 2px solid #E0E0E0;
   color:#FFA000;
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-columns: 1fr 1fr 1fr 1fr;
 
 }
 .record_operation{
-  grid-column: 3 ;
+  grid-column: 4 ;
 }
 .record_channel{
   display:inline;

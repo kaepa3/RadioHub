@@ -3,7 +3,7 @@ import './App.css';
 import DatePicker from "react-datepicker"
 import "react-datepicker/dist/react-datepicker.css"
 import Select, { ValueType } from 'react-select'
-import Record from './component/Record'
+import Record, { ClickRecord } from './component/Record'
 
 var parser = require('xml-js');
 
@@ -15,12 +15,13 @@ const rec_types = [
 ]
 interface Props {
   day: Date
-  rec_type: ListRecord
-  channels: ListRecord[]
-  select_channel: ListRecord
+  rec_type: ValueLabel
+  channels: ValueLabel[]
+  select_channel: ValueLabel
+  items: any[]
 }
 
-interface ListRecord {
+interface ValueLabel {
   value: string
   label: string
 }
@@ -32,7 +33,8 @@ class App extends React.Component<{}, Props> {
       day: new Date(),
       rec_type: rec_types[0],
       channels: new Array(0),
-      select_channel: { value: "", label: "" }
+      select_channel: { value: "", label: "" },
+      items: new Array
     }
   }
 
@@ -41,17 +43,23 @@ class App extends React.Component<{}, Props> {
       response.json().then(json => {
         const div = document.getElementById('schedule')
         div?.querySelectorAll('*').forEach(n => n.remove());
-        json.forEach((v: any) => {
-          const text = v.channel + v.date + v.start
-          const obj = document.createElement("div")
-          obj.innerHTML = text
-          div?.appendChild(obj)
-          console.log(v)
-          console.log(obj)
-        })
+        const li: any[] = new Array
+        json.forEach((v: any) => { li.push(v) })
+        this.setState({ items: li })
         console.log(json)
       })
     }
+  }
+
+  listItems = (state: any[]) => {
+    console.log("koko")
+    console.log(state)
+    return state.map((rec: any) => {
+      if (rec != "") {
+        return <Record channel={rec.channel} description="" time={rec.date + rec.start} onClickDelete={this.handleDeleteRecord} />
+      }
+      return null;
+    });
   }
 
   componentDidMount() {
@@ -67,16 +75,12 @@ class App extends React.Component<{}, Props> {
         return parser.xml2js(xml, options)['elements'][0]['elements']
       })
       .then(function(res) {
-        const list: ListRecord[] = new Array(0)
+        const list: ValueLabel[] = new Array(0)
         res.forEach((v: any) => {
           const name = v.elements[0].elements[0]['text']
           list.push({ label: name, value: name })
         })
-        return list
-      })
-      .then(function(res) {
-        console.log(res)
-        main.setState({ channels: res })
+        main.setState({ channels: list })
       })
       .catch((err) => {
         console.log('err' + err)
@@ -113,12 +117,27 @@ class App extends React.Component<{}, Props> {
   private handleChange = (d: any) => {
     this.setState({ day: d })
   }
-  handleTypeChange = (tp: ValueType<ListRecord>) => {
-    const v = tp as ListRecord
+  handleTypeChange = (tp: ValueType<ValueLabel>) => {
+    const v = tp as ValueLabel
     this.setState({ rec_type: v })
   }
   private handleChangeChannel = (d: any) => {
     this.setState({ select_channel: d })
+  }
+  handleDeleteRecord = (e: ClickRecord) => {
+    const main = this
+    const text = this.createRequestInfo()
+    console.log('delete record')
+    console.log(e)
+    fetch('/delete', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: text
+    }).then(function(res) {
+      main.updateSchedule(res)
+    })
   }
   render() {
     return (
@@ -126,6 +145,10 @@ class App extends React.Component<{}, Props> {
         <div className='header'>RadioHub</div>
         <div className='content'>
           <div className='operation'>
+            <div>
+              <p>Description</p>
+              <input type="text" className="tbox-style" id="description" ></input>
+            </div>
             <p>Start Now</p>
             <Select id="rec_type" className="selectbox" onChange={this.handleTypeChange} options={rec_types} value={this.state.rec_type} defaultValue={rec_types[0]} />
             <div className='datetime' style={{ display: this.state.rec_type.value !== 'now' ? '' : 'none' }}>
@@ -151,7 +174,7 @@ class App extends React.Component<{}, Props> {
           <div className="schedule_area">
             <p>Schedule</p>
             <div id="schedule"> </div>
-            <Record channel= "hote" ></Record>
+            {this.listItems(this.state.items)}
           </div>
         </div>
       </div>
