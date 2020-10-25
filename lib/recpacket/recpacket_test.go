@@ -12,8 +12,8 @@ func TestGetRecordingTime(t *testing.T) {
 
 	var v RecordingRequest
 	v.Date = "01/02/2020"
-	v.StartTime = "19:00"
-	recTime := v.GetRecordingTime()
+	v.Time = "19:00"
+	recTime, _ := v.GetRecordingTime()
 	assert.Equal(t, 2020, recTime.Year())
 	assert.Equal(t, time.Month(1), recTime.Month())
 	assert.Equal(t, 2, recTime.Day())
@@ -34,8 +34,9 @@ func TestCheckTimeBefore(t *testing.T) {
 		var buff RecordingRequest
 		cTime := v.a
 		buff.Date = fmt.Sprintf("%02d/%02d/%04d", cTime.Month(), cTime.Day(), cTime.Year())
-		buff.StartTime = fmt.Sprintf("%d:%d", cTime.Hour(), cTime.Minute())
-		assert.Equal(t, v.expected, buff.CheckTimeBefore(), fmt.Sprintf("index:%d", i))
+		buff.Time = fmt.Sprintf("%d:%d", cTime.Hour(), cTime.Minute())
+		flg, _ := buff.CheckTimeBefore()
+		assert.Equal(t, v.expected, flg, fmt.Sprintf("index:%d", i))
 	}
 }
 func TestGetNextRecordingTime(t *testing.T) {
@@ -51,8 +52,8 @@ func TestGetNextRecordingTime(t *testing.T) {
 		var buff RecordingRequest
 		cTime := v.a
 		buff.Date = fmt.Sprintf("%02d/%02d/%04d", cTime.Month(), cTime.Day(), cTime.Year())
-		buff.StartTime = fmt.Sprintf("%d:%d", cTime.Hour(), cTime.Minute())
-		nt := buff.GetNextRecordingTime()
+		buff.Time = fmt.Sprintf("%d:%d", cTime.Hour(), cTime.Minute())
+		nt, _ := buff.GetNextRecordingTime()
 		assert.Equal(t, v.b.Year(), nt.Year(), nt)
 		assert.Equal(t, v.b.Month(), nt.Month(), nt)
 		assert.Equal(t, v.b.Day(), nt.Day(), nt)

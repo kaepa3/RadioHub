@@ -7,19 +7,21 @@ type Props = {
   channel: string;
   description: string;
   time: string;
+  date: string;
   onClickDelete: Function;
 }
 
 export type ClickRecord = {
   channel: string;
   description: string;
-  datetime: string;
+  date: string;
+  time: string;
 }
 
 
-const Record: React.FC<Props> = ({ children, channel, description, time, onClickDelete }) => {
+const Record: React.FC<Props> = ({ children, channel, description,  date, time, onClickDelete }) => {
   const handleDeleteClick = () => {
-    const rec: ClickRecord = {channel: channel, description: description, datetime:time} 
+    const rec: ClickRecord = { channel: channel, description: description, time: time, date: date }
     onClickDelete(rec)
   }
   return (
@@ -45,7 +47,7 @@ const Record: React.FC<Props> = ({ children, channel, description, time, onClick
           <Clock color='white' />
         </div>
         <div className='record_text'>
-          <span> {time} </span>
+          <span>{date} {time} </span>
         </div>
       </div>
       <div className="record_operation">

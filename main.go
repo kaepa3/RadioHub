@@ -31,6 +31,7 @@ func main() {
 	r.GET("/area", getArea)
 	r.GET("/schedule", getSchedule)
 	r.POST("/rec", recStart)
+	r.POST("/del", deleteRecord)
 	r.Run()
 
 }
@@ -57,13 +58,17 @@ func createSchedule() {
 	sche.StartAsync()
 }
 func RegistrationRecording(sche *gocron.Scheduler, v recpacket.RecordingRequest) {
-	t := v.GetNextRecordingTime()
-	log.Println(t)
-	j, err := sche.Every(1).Week().StartAt(t).Do(func() { recordingTask(v.Channel, v.RecMinute) })
+	t, err := v.GetNextRecordingTime()
 	if err == nil {
-		log.Println(j)
+		log.Println(t)
+		j, err := sche.Every(1).Week().StartAt(t).Do(func() { recordingTask(v.Channel, v.RecMinute) })
+		if err == nil {
+			log.Println(j)
+		} else {
+			log.Println(err)
+		}
 	} else {
-		log.Println(err)
+		log.Println(err.Error())
 	}
 }
 
@@ -104,23 +109,36 @@ func recStart(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
+	fmt.Println("--------")
 	fmt.Println(json)
-	if json.IsNow == "on" {
+	if json.RecType == "now" {
 		recordingTask(json.Channel, json.RecMinute)
 	} else {
-		if !json.CheckTimeBefore() {
+		v, err := json.CheckTimeBefore()
+		if err != nil {
+			log.Println(err.Error())
+		} else if !v {
 			sche := getScheduler()
 			RegistrationRecording(sche, json)
 			col := scheduledb.Schedules{}
 			if _, err := col.InsertOne(context.Background(), json); err != nil {
 				log.Println(err)
 			} else {
-				log.Println("regist:" + json.GetNextRecordingTime().String())
+				v, _ := json.GetNextRecordingTime()
+				log.Println("regist:" + v.String())
 			}
 		} else {
-			log.Println("past")
-
+			log.Println("past:")
 		}
 	}
+	getSchedule(c)
+}
+func deleteRecord(c *gin.Context) {
+	var json recpacket.RecordingRequest
+	if err := c.ShouldBindJSON(&json); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	log.Println(json)
 	getSchedule(c)
 }

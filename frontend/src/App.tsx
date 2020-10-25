@@ -27,7 +27,7 @@ interface ValueLabel {
 }
 
 class App extends React.Component<{}, Props> {
-  constructor(prop: any) {
+   constructor(prop: any) {
     super(prop)
     this.state = {
       day: new Date(),
@@ -52,11 +52,9 @@ class App extends React.Component<{}, Props> {
   }
 
   listItems = (state: any[]) => {
-    console.log("koko")
-    console.log(state)
     return state.map((rec: any) => {
       if (rec != "") {
-        return <Record channel={rec.channel} description="" time={rec.date + rec.start} onClickDelete={this.handleDeleteRecord} />
+        return <Record channel={rec.channel} description="" date={rec.date}  time={rec.time} onClickDelete={this.handleDeleteRecord} />
       }
       return null;
     });
@@ -107,10 +105,10 @@ class App extends React.Component<{}, Props> {
     const rec_minute: HTMLInputElement = document.getElementById('rec_minute') as HTMLInputElement;
     const datepicker: HTMLInputElement = document.getElementById('datepicker') as HTMLInputElement;
     return JSON.stringify({
-      date: datepicker?.value,
       channel: this.state.select_channel.value,
-      start: start_time?.value,
-      rec_type: this.state.rec_type,
+      date: datepicker?.value,
+      time: start_time?.value,
+      rec_type: this.state.rec_type.value,
       rec_minute: rec_minute?.value,
     })
   }
@@ -125,11 +123,15 @@ class App extends React.Component<{}, Props> {
     this.setState({ select_channel: d })
   }
   handleDeleteRecord = (e: ClickRecord) => {
-    const main = this
-    const text = this.createRequestInfo()
     console.log('delete record')
-    console.log(e)
-    fetch('/delete', {
+    const main = this
+    const text = JSON.stringify({
+      channel: e.channel,
+      date: e.date,
+      time: e.time,
+      description: e.description
+    })
+    fetch('/del', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
