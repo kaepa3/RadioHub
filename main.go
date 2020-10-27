@@ -19,6 +19,11 @@ import (
 
 var s1 *gocron.Scheduler
 
+type JobStatus struct {
+	Job  *gocron.Job
+	time time.Time
+}
+
 func main() {
 
 	//cron
@@ -35,7 +40,7 @@ func main() {
 	r.Run()
 
 }
-func getScheduler() *gocron.Scheduler {
+func getGocron() *gocron.Scheduler {
 	if s1 != nil {
 		return s1
 	}
@@ -50,7 +55,7 @@ func createSchedule() {
 	if err != nil {
 		return
 	}
-	sche := getScheduler()
+	sche := getGocron()
 	for _, v := range schedule {
 		RegistrationRecording(sche, v)
 	}
@@ -61,8 +66,14 @@ func RegistrationRecording(sche *gocron.Scheduler, v recpacket.RecordingRequest)
 	t, err := v.GetNextRecordingTime()
 	if err == nil {
 		log.Println(t)
-		j, err := sche.Every(1).Week().StartAt(t).Do(func() { recordingTask(v.Channel, v.RecMinute) })
+		ch := make(chan string)
+		j, err := sche.Every(1).Week().StartAt(t).Do(func() { recordingTask(v.Channel, v.RecMinute, ch) })
 		if err == nil {
+			go func() {
+				log.Println(<-ch)
+				getGocron().RemoveByReference(j)
+				deleteRecordFromDB(v)
+			}()
 			log.Println(j)
 		} else {
 			log.Println(err)
@@ -72,13 +83,14 @@ func RegistrationRecording(sche *gocron.Scheduler, v recpacket.RecordingRequest)
 	}
 }
 
-func recordingTask(ch string, minute string) {
+func recordingTask(ch string, minute string, c chan<- string) {
 	log.Println("start recording:" + ch + " sec:" + minute)
 	if cmd, err := radigo.RecLiveCommandFactory(); err == nil {
 		id := fmt.Sprintf("-id=%s", ch)
 		time := fmt.Sprintf("-t=%s", minute)
 		cmd.Run([]string{id, time})
 	}
+	c <- "end task"
 }
 
 func getSchedule(c *gin.Context) {
@@ -112,13 +124,14 @@ func recStart(c *gin.Context) {
 	fmt.Println("--------")
 	fmt.Println(json)
 	if json.RecType == "now" {
-		recordingTask(json.Channel, json.RecMinute)
+		ch := make(chan string)
+		recordingTask(json.Channel, json.RecMinute, ch)
 	} else {
 		v, err := json.CheckTimeBefore()
 		if err != nil {
 			log.Println(err.Error())
 		} else if !v {
-			sche := getScheduler()
+			sche := getGocron()
 			RegistrationRecording(sche, json)
 			col := scheduledb.Schedules{}
 			if _, err := col.InsertOne(context.Background(), json); err != nil {
@@ -134,16 +147,19 @@ func recStart(c *gin.Context) {
 	getSchedule(c)
 }
 func deleteRecord(c *gin.Context) {
-
 	var json recpacket.RecordingRequest
 	if err := c.ShouldBindJSON(&json); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
+	deleteRecordFromDB(json)
+	getSchedule(c)
+}
+
+func deleteRecordFromDB(p recpacket.RecordingRequest) {
 	col := scheduledb.Schedules{}
-	if _, err := col.DeleteOne(context.Background(), json.Channel, json.Date, json.Time); err != nil {
+	if _, err := col.DeleteOne(context.Background(), p.Channel, p.Date, p.Time); err != nil {
 		log.Println(err)
 		return
 	}
-	getSchedule(c)
 }
