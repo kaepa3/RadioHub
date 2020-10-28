@@ -71,8 +71,10 @@ func RegistrationRecording(sche *gocron.Scheduler, v recpacket.RecordingRequest)
 		if err == nil {
 			go func() {
 				log.Println(<-ch)
-				getGocron().RemoveByReference(j)
-				deleteRecordFromDB(v)
+				if v.RecType == "one_time" {
+					getGocron().RemoveByReference(j)
+					deleteRecordFromDB(v)
+				}
 			}()
 			log.Println(j)
 		} else {
@@ -121,27 +123,36 @@ func recStart(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	fmt.Println("--------")
-	fmt.Println(json)
-	if json.RecType == "now" {
+
+	switch json.RecType {
+	case "now":
 		ch := make(chan string)
 		recordingTask(json.Channel, json.RecMinute, ch)
-	} else {
+	case "schedule":
+		sche := getGocron()
+		RegistrationRecording(sche, json)
+		col := scheduledb.Schedules{}
+		if _, err := col.InsertOne(context.Background(), json); err != nil {
+			log.Println(err)
+		} else {
+			v, _ := json.GetNextRecordingTime()
+			log.Println("regist:" + v.String())
+		}
+	case "one_time":
 		v, err := json.CheckTimeBefore()
 		if err != nil {
 			log.Println(err.Error())
-		} else if !v {
-			sche := getGocron()
-			RegistrationRecording(sche, json)
-			col := scheduledb.Schedules{}
-			if _, err := col.InsertOne(context.Background(), json); err != nil {
-				log.Println(err)
-			} else {
-				v, _ := json.GetNextRecordingTime()
-				log.Println("regist:" + v.String())
+			return
+		}
+		if cmd, err := radigo.RecCommandFactory(); err == nil {
+			if v {
+				t, err := json.GetRecordingTime()
+				if err == nil {
+					id := fmt.Sprintf("-id=%s", json.Channel)
+					time := fmt.Sprintf("-s=%s", t.Format("20060102150405"))
+					cmd.Run([]string{id, time})
+				}
 			}
-		} else {
-			log.Println("past:")
 		}
 	}
 	getSchedule(c)
