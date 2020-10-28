@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"time"
 
@@ -15,7 +14,34 @@ import (
 	"github.com/yyoshiki41/radigo"
 
 	"github.com/go-co-op/gocron"
+
+	log "github.com/cihub/seelog"
 )
+
+func configLogger() {
+	config := `
+<seelog type="sync">
+    <outputs>
+        <filter levels="trace,debug,info">
+            <console formatid="ltsv"/>
+        </filter>
+        <filter levels="warn,error,critical">
+            <console formatid="ltsv_error"/>
+        </filter>
+        <file formatid="ltsv" path="result.log"/>
+    </outputs>
+    <formats>
+        <format id="ltsv" format="time:%Date(2006-01-02T15:04:05.000Z07:00)%tlev:%l%tmsg:%Msg%n"/>
+        <format id="ltsv_error"
+            format="%EscM(31)time:%Date(2006-01-02T15:04:05.000Z07:00)%tlev:%l%tmsg:%Msg%EscM(0)%n"/>
+    </formats>
+</seelog>`
+	logger, err := log.LoggerFromConfigAsBytes([]byte(config))
+	if err != nil {
+		panic(err)
+	}
+	log.ReplaceLogger(logger)
+}
 
 var s1 *gocron.Scheduler
 
@@ -65,28 +91,28 @@ func createSchedule() {
 func RegistrationRecording(sche *gocron.Scheduler, v recpacket.RecordingRequest) {
 	t, err := v.GetNextRecordingTime()
 	if err == nil {
-		log.Println(t)
+		log.Info(t)
 		ch := make(chan string)
 		j, err := sche.Every(1).Week().StartAt(t).Do(func() { recordingTask(v.Channel, v.RecMinute, ch) })
 		if err == nil {
 			go func() {
-				log.Println(<-ch)
+				log.Info(<-ch)
 				if v.RecType == "one_time" {
 					getGocron().RemoveByReference(j)
 					deleteRecordFromDB(v)
 				}
 			}()
-			log.Println(j)
+			log.Info(j)
 		} else {
-			log.Println(err)
+			log.Info(err)
 		}
 	} else {
-		log.Println(err.Error())
+		log.Info(err.Error())
 	}
 }
 
 func recordingTask(ch string, minute string, c chan<- string) {
-	log.Println("start recording:" + ch + " sec:" + minute)
+	log.Info("start recording:" + ch + " sec:" + minute)
 	if cmd, err := radigo.RecLiveCommandFactory(); err == nil {
 		id := fmt.Sprintf("-id=%s", ch)
 		time := fmt.Sprintf("-t=%s", minute)
@@ -133,15 +159,15 @@ func recStart(c *gin.Context) {
 		RegistrationRecording(sche, json)
 		col := scheduledb.Schedules{}
 		if _, err := col.InsertOne(context.Background(), json); err != nil {
-			log.Println(err)
+			log.Info(err)
 		} else {
 			v, _ := json.GetNextRecordingTime()
-			log.Println("regist:" + v.String())
+			log.Info("regist:" + v.String())
 		}
 	case "one_time":
 		v, err := json.CheckTimeBefore()
 		if err != nil {
-			log.Println(err.Error())
+			log.Info(err.Error())
 			return
 		}
 		if cmd, err := radigo.RecCommandFactory(); err == nil {
@@ -170,7 +196,7 @@ func deleteRecord(c *gin.Context) {
 func deleteRecordFromDB(p recpacket.RecordingRequest) {
 	col := scheduledb.Schedules{}
 	if _, err := col.DeleteOne(context.Background(), p.Channel, p.Date, p.Time); err != nil {
-		log.Println(err)
+		log.Info(err)
 		return
 	}
 }
