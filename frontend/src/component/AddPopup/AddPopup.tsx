@@ -38,6 +38,7 @@ interface ValueLabel {
 class AddPopup extends React.Component<{}, IState>{
   constructor(props: {}) {
     super(props);
+    console.log(props)
     this.state = {
       modalIsOpen: false,
       day: new Date(),

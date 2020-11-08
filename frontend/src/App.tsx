@@ -154,7 +154,7 @@ class App extends React.Component<{}, Props> {
         <div className='header'>RadioHub</div>
         <div className='content'>
         <div>
-        <AddPopup />
+        <AddPopup {...this.state.channels}/>
         </div>
           <div className='operation'>
             <div>
