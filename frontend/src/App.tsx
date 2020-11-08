@@ -3,7 +3,8 @@ import './App.css';
 import DatePicker from "react-datepicker"
 import "react-datepicker/dist/react-datepicker.css"
 import Select, { ValueType } from 'react-select'
-import Record, { ClickRecord } from './component/Record'
+import Record, { ClickRecord } from './component/Record/Record'
+import AddPopup from './component/AddPopup/AddPopup'
 
 var parser = require('xml-js');
 
@@ -152,6 +153,9 @@ class App extends React.Component<{}, Props> {
       <div className="App">
         <div className='header'>RadioHub</div>
         <div className='content'>
+        <div>
+        <AddPopup />
+        </div>
           <div className='operation'>
             <div>
               <p>Description</p>
