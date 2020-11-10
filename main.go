@@ -51,10 +51,14 @@ type JobStatus struct {
 }
 
 func main() {
+	log.Info("\n\napp start\n\n")
+	//log
+	configLogger()
 
 	//cron
 	createSchedule()
 
+	log.Info("server start")
 	//server
 	r := gin.Default()
 	r.Use(static.Serve("/", static.LocalFile("frontend/build", false)))
@@ -79,6 +83,7 @@ func createSchedule() {
 	col := scheduledb.Schedules{}
 	schedule, err := col.GetAll()
 	if err != nil {
+		log.Info(err)
 		return
 	}
 	sche := getGocron()

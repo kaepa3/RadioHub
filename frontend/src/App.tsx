@@ -1,8 +1,7 @@
 import React from 'react';
 import './App.css';
-import DatePicker from "react-datepicker"
 import "react-datepicker/dist/react-datepicker.css"
-import Select, { ValueType } from 'react-select'
+import { ValueType } from 'react-select'
 import Record, { ClickRecord } from './component/Record/Record'
 import AddPopup from './component/AddPopup/AddPopup'
 
@@ -35,7 +34,7 @@ class App extends React.Component<{}, Props> {
       rec_type: rec_types[0],
       channels: new Array(0),
       select_channel: { value: "", label: "" },
-      items: new Array
+      items: []
     }
   }
 
@@ -44,7 +43,7 @@ class App extends React.Component<{}, Props> {
       response.json().then(json => {
         const div = document.getElementById('schedule')
         div?.querySelectorAll('*').forEach(n => n.remove());
-        const li: any[] = new Array
+        const li: any[] = []
         json.forEach((v: any) => { li.push(v) })
         this.setState({ items: li })
         console.log(json)
@@ -54,7 +53,7 @@ class App extends React.Component<{}, Props> {
 
   listItems = (state: any[]) => {
     return state.map((rec: any) => {
-      if (rec != "") {
+      if (rec !== "") {
         return <Record channel={rec.channel} description={rec.description} date={rec.date} time={rec.time} onClickDelete={this.handleDeleteRecord} />
       }
       return null;
@@ -86,49 +85,27 @@ class App extends React.Component<{}, Props> {
       })
   }
 
-  private handleClick = () => {
+  handleAdd(json: string) {
     const main = this
-    const text = this.createRequestInfo()
-    console.log(text)
+    console.log(json)
     fetch('/rec', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
       },
-      body: text
+      body: json
     }).then(function(res) {
       main.updateSchedule(res)
     })
-
-  }
-  createRequestInfo() {
-    const description: HTMLInputElement = document.getElementById('description') as HTMLInputElement;
-    const time: HTMLInputElement = document.getElementById('time') as HTMLInputElement;
-    const rec_minute: HTMLInputElement = document.getElementById('rec_minute') as HTMLInputElement;
-    const datepicker: HTMLInputElement = document.getElementById('datepicker') as HTMLInputElement;
-    return JSON.stringify({
-      description: description.value,
-      channel: this.state.select_channel.value,
-      date: datepicker?.value,
-      time: time?.value,
-      rec_type: this.state.rec_type.value,
-      rec_minute: rec_minute?.value,
-    })
-  }
-  private handleChange = (d: any) => {
-    this.setState({ day: d })
   }
   handleTypeChange = (tp: ValueType<ValueLabel>) => {
     const v = tp as ValueLabel
     this.setState({ rec_type: v })
   }
-  private handleChangeChannel = (d: any) => {
-    this.setState({ select_channel: d })
-  }
   handleDeleteRecord = (e: ClickRecord) => {
     console.log('delete record')
-    if(!window.confirm("対象のスケジュールを削除してよろしいですか？")){
-      return 
+    if (!window.confirm("対象のスケジュールを削除してよろしいですか？")) {
+      return
     }
 
     const main = this
@@ -153,38 +130,11 @@ class App extends React.Component<{}, Props> {
       <div className="App">
         <div className='header'>RadioHub</div>
         <div className='content'>
-        <div>
-        <AddPopup {...this.state.channels}/>
-        </div>
-          <div className='operation'>
-            <div>
-              <p>Description</p>
-              <input type="text" className="tbox-style" id="description" ></input>
-            </div>
-            <p>Rec Type</p>
-            <Select id="rec_type" className="selectbox" onChange={this.handleTypeChange} options={rec_types} value={this.state.rec_type} defaultValue={rec_types[0]} />
-            <div className='datetime' style={{ display: this.state.rec_type.value !== 'now' ? '' : 'none' }}>
-              <p>Date</p>
-              <DatePicker className="datepicker" id="datepicker"
-                onChange={this.handleChange}
-                selected={this.state.day} />
-              <p>Time</p>
-              <input type="time" id="time" className="tbox-style" />
-            </div>
-            <div>
-              <p> Recording Length</p>
-              <input type="number" id="rec_minute" className="tbox-style" defaultValue="90"></input>sec
-            </div>
-            <div>
-              <p> Channel </p>
-              <Select className="selectbox" id="channel" options={this.state.channels} value={this.state.select_channel} onChange={this.handleChangeChannel} />
-            </div>
-            <div className='register'>
-              <button onClick={this.handleClick}>recording start</button>
-            </div>
+          <div>
+            <AddPopup addCallback={this.handleAdd} {...this.state.channels} />
           </div>
           <div className="schedule_area">
-            <p>Schedule</p>
+            <p> Schedule</p>
             <div id="schedule"> </div>
             {this.listItems(this.state.items)}
           </div>

@@ -2,13 +2,16 @@ import React from 'react';
 import Modal from 'react-modal';
 import DatePicker from "react-datepicker"
 import Select, { ValueType } from 'react-select'
+import './AddPopup.css';
+import { Add } from 'grommet-icons';
 
+Modal.setAppElement("div");
 const customStyles = {
   content: {
     top: '50%',
     left: '50%',
     right: 'auto',
-    width: '80%',
+    width: '60%',
     height: '90%',
     bottom: 'auto',
     marginRight: '-50%',
@@ -34,9 +37,12 @@ interface ValueLabel {
   value: string
   label: string
 }
+interface IProps {
+  addCallback: (json: string) => void;
+}
 
-class AddPopup extends React.Component<{}, IState>{
-  constructor(props: {}) {
+class AddPopup extends React.Component<IProps, IState>{
+  constructor(props: IProps) {
     super(props);
     console.log(props)
     this.state = {
@@ -49,7 +55,7 @@ class AddPopup extends React.Component<{}, IState>{
     this.openModal = this.openModal.bind(this);
     this.afterOpenModal = this.afterOpenModal.bind(this);
     this.closeModal = this.closeModal.bind(this);
-    this.addSchedule= this.addSchedule.bind(this);
+    this.addSchedule = this.addSchedule.bind(this);
   }
 
   private handleChangeChannel = (d: any) => {
@@ -63,8 +69,10 @@ class AddPopup extends React.Component<{}, IState>{
     const v = tp as ValueLabel
     this.setState({ rec_type: v })
   }
-  addSchedule(){
-    this.setState({ modalIsOpen: false });
+  addSchedule() {
+    const json = this.createRequestInfo()
+    this.props.addCallback(json);
+    this.closeModal()
   }
 
   openModal() {
@@ -75,10 +83,26 @@ class AddPopup extends React.Component<{}, IState>{
   closeModal() {
     this.setState({ modalIsOpen: false });
   }
+  createRequestInfo() {
+    const description: HTMLInputElement = document.getElementById('description') as HTMLInputElement;
+    const time: HTMLInputElement = document.getElementById('time') as HTMLInputElement;
+    const rec_minute: HTMLInputElement = document.getElementById('rec_minute') as HTMLInputElement;
+    const datepicker: HTMLInputElement = document.getElementById('datepicker') as HTMLInputElement;
+    return JSON.stringify({
+      description: description.value,
+      channel: this.state.select_channel.value,
+      date: datepicker?.value,
+      time: time?.value,
+      rec_type: this.state.rec_type.value,
+      rec_minute: rec_minute?.value,
+    })
+  }
   render() {
     return (
       <div>
-        <button onClick={this.openModal}>Open Modal!!</button>
+        <button onClick={this.openModal}>
+          <Add color='white' />
+        </button>
         <Modal
           isOpen={this.state.modalIsOpen}
           onAfterOpen={this.afterOpenModal}
@@ -86,6 +110,7 @@ class AddPopup extends React.Component<{}, IState>{
           style={customStyles}
           contentLabel="Example Modal"
         >
+          <div className='input_area'>
             <div>
               <p>Description</p>
               <input type="text" className="tbox-style" id="description" ></input>
@@ -108,8 +133,11 @@ class AddPopup extends React.Component<{}, IState>{
               <p> Channel </p>
               <Select className="selectbox" id="channel" options={this.state.channels} value={this.state.select_channel} onChange={this.handleChangeChannel} />
             </div>
-          <button onClick={this.addSchedule}>add</button>
-          <button onClick={this.closeModal}>close</button>
+            <div className='operation'>
+              <button onClick={this.addSchedule}>add</button>
+              <button onClick={this.closeModal}>close</button>
+            </div>
+          </div>
         </Modal>
       </div>
     );
