@@ -2,7 +2,6 @@ package scheduledb
 
 import (
 	"context"
-	"errors"
 	"log"
 
 	"github.com/kaepa3/RadioHub/lib/recpacket"
@@ -23,8 +22,7 @@ func (sch *Schedules) GetAll() ([]recpacket.RecordingRequest, error) {
 	defer sch.close()
 	cur, err := sch.collection.Find(context.Background(), bson.D{})
 	if err != nil {
-		log.Fatalln(err)
-		return make([]recpacket.RecordingRequest, 0), errors.New("asfd")
+		return make([]recpacket.RecordingRequest, 0), err
 	}
 
 	docs := make([]recpacket.RecordingRequest, 0, 20)
@@ -46,7 +44,10 @@ func (sch *Schedules) InsertOne(ctx context.Context, document interface{}, opts 
 	return sch.collection.InsertOne(ctx, document)
 }
 func (sch *Schedules) open() error {
-	cl, err := mongo.NewClient(options.Client().ApplyURI("mongodb://localhost:27017"))
+	opts := options.ClientOptions{}
+	opts.SetDirect(true)
+	opts.ApplyURI("mongodb://localhost:27017")
+	cl, err := mongo.NewClient(&opts)
 	if err != nil {
 		return err
 	}
